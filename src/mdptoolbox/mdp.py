@@ -447,6 +447,7 @@ class FiniteHorizon(MDP):
                     stage, self.policy[:, stage].tolist()))
         # update time spent running
         self.time = _time.time() - self.time
+
         # After this we could create a tuple of tuples for the values and
         # policies.
         # self.V = tuple(tuple(self.V[:, n].tolist()) for n in range(self.N))
@@ -802,7 +803,14 @@ class PolicyIteration(MDP):
         # Run the policy iteration algorithm.
         self._startRun()
 
+        ## PFGPI
+        self.pfg_ite = []
+        self.pfg_diff = []
+        self.pfg_timeite = []
+        pfg_start = _time.time()
+        
         while True:
+            pfg_start_ite = _time.time()
             self.iter += 1
             # these _evalPolicy* functions will update the classes value
             # attribute
@@ -820,6 +828,11 @@ class PolicyIteration(MDP):
             # if verbose then continue printing a table
             if self.verbose:
                 _printVerbosity(self.iter, n_different)
+            
+            # PFG
+            self.pfg_ite.append(self.iter)
+            self.pfg_diff.append(n_different)
+            self.pfg_timeite.append(_time.time()-pfg_start_ite)
             # Once the policy is unchanging of the maximum number of
             # of iterations has been reached then stop
             if n_different == 0:
@@ -833,6 +846,8 @@ class PolicyIteration(MDP):
             else:
                 self.policy = policy_next
 
+        # PFG
+        self.pfg_last_run_time = _time.time()-pfg_start
         self._endRun()
 
 
@@ -1422,7 +1437,14 @@ class ValueIteration(MDP):
         # Run the value iteration algorithm.
         self._startRun()
 
+        #PFGVI
+        self.pfg_ite = []
+        self.pfg_diff = []
+        self.pfg_timeite = []
+        pfg_start = _time.time()
+
         while True:
+            pfg_start_ite = _time.time()
             self.iter += 1
 
             Vprev = self.V.copy()
@@ -1438,6 +1460,11 @@ class ValueIteration(MDP):
             if self.verbose:
                 _printVerbosity(self.iter, variation)
 
+            # PFG
+            self.pfg_ite.append(self.iter)
+            self.pfg_diff.append(variation)
+            self.pfg_timeite.append(_time.time()-pfg_start_ite)
+
             if variation < self.thresh:
                 if self.verbose:
                     print(_MSG_STOP_EPSILON_OPTIMAL_POLICY)
@@ -1446,6 +1473,9 @@ class ValueIteration(MDP):
                 if self.verbose:
                     print(_MSG_STOP_MAX_ITER)
                 break
+
+        # PFG
+        self.pfg_last_run_time = _time.time()-pfg_start
 
         self._endRun()
 
