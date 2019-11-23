@@ -1363,7 +1363,7 @@ class ValueIteration(MDP):
     """
 
     def __init__(self, transitions, reward, discount, epsilon=0.01,
-                 max_iter=1000, initial_value=0, skip_check=False):
+                 max_iter=1000, initial_value=0, skip_check=False, bound_iter=False):
         # Initialise a value iteration MDP.
 
         MDP.__init__(self, transitions, reward, discount, epsilon, max_iter,
@@ -1379,13 +1379,17 @@ class ValueIteration(MDP):
         if self.discount < 1:
             # compute a bound for the number of iterations and update the
             # stored value of self.max_iter
-            self._boundIter(epsilon)
+            if bound_iter:
+            	self._boundIter(epsilon)
             # computation of threshold of variation for V for an epsilon-
             # optimal policy
             self.thresh = epsilon * (1 - self.discount) / self.discount
         else:  # discount == 1
             # threshold of variation for V for an epsilon-optimal policy
             self.thresh = epsilon
+
+        print("Real max-iter", self.max_iter)
+        print("Real threshold", self.thresh)
 
     def _boundIter(self, epsilon):
         # Compute a bound for the number of iterations.
@@ -1452,6 +1456,9 @@ class ValueIteration(MDP):
             # Bellman Operator: compute policy and value functions
             self.policy, self.V = self._bellmanOperator()
 
+            # PFG
+            self.pfg_timeite.append(_time.time()-pfg_start_ite)
+
             # The values, based on Q. For the function "max()": the option
             # "axis" means the axis along which to operate. In this case it
             # finds the maximum of the the rows. (Operates along the columns?)
@@ -1463,7 +1470,7 @@ class ValueIteration(MDP):
             # PFG
             self.pfg_ite.append(self.iter)
             self.pfg_diff.append(variation)
-            self.pfg_timeite.append(_time.time()-pfg_start_ite)
+            
 
             if variation < self.thresh:
                 if self.verbose:
